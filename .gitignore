@@ -5,6 +5,7 @@
 .cache/
 .history/
 .lib/
+.sbt_completion_cache
 dist/*
 target/
 lib_managed/
@@ -12,6 +13,7 @@ src_managed/
 project/boot/
 project/plugins/project/
 
-# Scala-IDE specific
+# IDE specific
+.idea
 .scala_dependencies
 .worksheet
