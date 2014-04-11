@@ -2,38 +2,31 @@ package io.bst.index
 
 import io.bst.contentprovider.Content
 import io.bst.user.User
-import com.sksamuel.elastic4s.source.DocumentMap
+import scala.concurrent.Future
+import org.elasticsearch.action.index.IndexResponse
+import com.sksamuel.elastic4s.ElasticClient
+import com.sksamuel.elastic4s.ElasticDsl._
 
 /**
- * An index capable of indexing [[Content]]
+ * An ElasticSearch index capable of indexing [[Content]]
  * @author Harald Pehl
  */
-trait Index {
-  def push(content: Content)
-}
+class Index(user: User) {
 
-class ElasticSearchIndex(user: User) extends Index {
-
-  import com.sksamuel.elastic4s.ElasticClient
-  import com.sksamuel.elastic4s.ElasticDsl._
-
+  val idxName = user.id.toString
   val client = ElasticClient.local
   client.execute {
-    create index user.id.toString
+    create index idxName
   }
 
-
-  override def push(content: Content): Unit = client.execute {
-    index into user.id.toString doc documentMap(content)
-  }
-
-  private def documentMap(content: Content) = {
-    new DocumentMap {
-      override def map = {
-        case Content(url, excerpt, None, Nil) => Map("url" -> url, "excerpt" -> excerpt)
-        case Content(url, excerpt, Some(data), Nil) => Map("url" -> url, "excerpt" -> excerpt, "data" -> data)
-        case Content(url, excerpt, None, tags) => Map("url" -> url, "excerpt" -> excerpt, "tags" -> tags.mkString(" "))
-        case Content(url, excerpt, Some(data), tags) => Map("url" -> url, "excerpt" -> excerpt, "data" -> data, "tags" -> tags.mkString(" "))
+  def push(content: Content): Future[IndexResponse] = {
+    val basics = Map("url" -> content.url, "excerpt" -> content.excerpt, "tags" -> content.tags)
+    client.execute {
+      index into idxName fields {
+        content match {
+          case Content(_, _, None, _) => basics
+          case Content(_, _, Some(data), _) => basics + ("data" -> data)
+        }
       }
     }
   }
