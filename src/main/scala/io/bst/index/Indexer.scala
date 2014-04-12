@@ -5,7 +5,7 @@ import java.time.Instant
 import io.bst.user.User
 import com.sksamuel.elastic4s.ElasticClient
 import com.sksamuel.elastic4s.ElasticDsl._
-import io.bst.model.Protocol.{Index, Indexed}
+import io.bst.model.Protocol.{Updated, Index, Indexed}
 import io.bst.content.Content
 
 
@@ -15,28 +15,27 @@ import io.bst.content.Content
  */
 class Indexer(user: User) extends Actor {
 
-  val idxName = user.id.toString
+  import context.dispatcher
+
+  val uid = user.id.toString
   val client = ElasticClient.local
-  client.execute {
-    create index idxName
-  }
+
+  client.execute(create index uid)
 
   override def receive = {
     case idxEntry: Index =>
 
-      // TODO Check which operation should applied CRUD?
+      val idxId = idxEntry.content.id
       val basics = Map("url" -> idxEntry.content.url, "excerpt" -> idxEntry.content.excerpt, "tags" -> idxEntry.content.tags)
-      val result = client.execute {
-        index into idxName -> "bst" fields {
-          idxEntry.content match {
-            case Content(_, _, None, _) => basics
-            case Content(_, _, Some(data), _) => basics + ("data" -> data)
-          }
-        }
+      val idxContent = idxEntry.content match {
+        case Content(_, _, _, None, _) => basics
+        case Content(_, _, _, Some(data), _) => basics + ("data" -> data)
       }
 
-      result map {
-        indexResponse => sender ! Indexed(idxEntry.content, idxEntry.provider, Instant.now())
+      client.execute(update(idxId) in (uid -> "bst") docAsUpsert idxContent) map {
+        updateResponse =>
+          if (updateResponse.isCreated) sender ! Indexed(idxEntry.content, idxEntry.provider, Instant.now())
+          else sender ! Updated(idxEntry.content, idxEntry.provider, Instant.now())
       }
   }
 }

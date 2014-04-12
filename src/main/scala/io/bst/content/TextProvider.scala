@@ -3,6 +3,7 @@ package io.bst.content
 import akka.actor.{Props, ActorRef, Actor}
 import scala.io.Source
 import io.bst.model.Protocol.{Index, Tick}
+import java.util.Base64
 
 
 object TextProvider {
@@ -29,7 +30,8 @@ class TextProvider(textFile: String, indexer: ActorRef) extends Actor {
     case Tick => {
       val lines = for {
         (line, idx) <- Source.fromInputStream(getClass.getResourceAsStream(textFile)).getLines().zipWithIndex if !line.stripLineEnd.isEmpty
-      } yield Content(s"file://random.txt#$idx", line)
+        id = Base64.getEncoder.encodeToString(line.getBytes)
+      } yield Content(id, s"file://random.txt#$idx", line)
 
       lines.foreach(content => indexer ! Index(content, provider))
     }
