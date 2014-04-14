@@ -1,41 +1,47 @@
 package io.bst.index
 
-import akka.actor.Actor
+import akka.actor.{Props, Actor}
 import java.time.Instant
-import io.bst.user.User
-import com.sksamuel.elastic4s.ElasticClient
-import com.sksamuel.elastic4s.ElasticDsl._
-import io.bst.model.Protocol.{Updated, Index, Indexed}
-import io.bst.content.Content
+import io.bst.model.Protocol.{IndexPile, Indexed, IndexContent, Created}
+import scala.collection.JavaConversions._
+import io.bst.ext.ElasticSearch
+
+
+object Indexer {
+  /**
+   * Create Props for an actor of this type.
+   * @param es The ElasticSearch singleton.
+   * @return a Props for creating this actor, which can then be further configured
+   *         (e.g. calling `.withDispatcher()` on it)
+   */
+  def props(es: ElasticSearch): Props = Props(new Indexer(es))
+}
 
 
 /**
- * An actor which indexes content to an ElasticSearch index
+ * An actor which indexes content to an ElasticSearch index. The sender is notified with [[Created]] or [[Indexed]]
+ * messages.
  * @author Harald Pehl
  */
-class Indexer(user: User) extends Actor {
+class Indexer(es: ElasticSearch) extends Actor {
 
   import context.dispatcher
 
-  val uid = user.id.toString
-  val client = ElasticClient.local
-
-  client.execute(create index uid)
-
   override def receive = {
-    case idxEntry: Index =>
 
-      val idxId = idxEntry.content.id
-      val basics = Map("url" -> idxEntry.content.url, "excerpt" -> idxEntry.content.excerpt, "tags" -> idxEntry.content.tags)
-      val idxContent = idxEntry.content match {
-        case Content(_, _, _, None, _) => basics
-        case Content(_, _, _, Some(data), _) => basics + ("data" -> data)
-      }
+    case IndexContent(provider, content) => es.index(provider, content) map {
+      response =>
+        if (response.isCreated) sender ! Created(content, provider, Instant.now())
+        else sender ! Indexed(content, provider, Instant.now())
+    }
 
-      client.execute(update(idxId) in (uid -> "bst") docAsUpsert idxContent) map {
-        updateResponse =>
-          if (updateResponse.isCreated) sender ! Indexed(idxEntry.content, idxEntry.provider, Instant.now())
-          else sender ! Updated(idxEntry.content, idxEntry.provider, Instant.now())
+    case IndexPile(provider, pile) => es.index(provider, pile) map {
+      response => response.zipWithIndex foreach {
+        case (item, index) => item.getOpType match {
+          case "create" => sender ! Created(pile(index), provider, Instant.now())
+          case "index" => sender ! Indexed(pile(index), provider, Instant.now())
+        }
       }
+    }
   }
 }

@@ -15,12 +15,20 @@ object Protocol {
   case class Tick()
 
   /**
-   * Command message for an indexer to index content from a provider
+   * Command message to index content from a provider
    *
-   * @param content the content
    * @param provider the provider which created the content
+   * @param content the content
    */
-  case class Index(content: Content, provider: ContentProvider)
+  case class IndexContent(provider: ContentProvider, content: Content)
+
+  /**
+   * Command message to index a pile of content from a provider
+   *
+   * @param provider the provider which created the content
+   * @param pile the content
+   */
+  case class IndexPile(provider: ContentProvider, pile: Seq[Content])
 
   /**
    * Signals a successfully indexed content
@@ -29,7 +37,7 @@ object Protocol {
    * @param provider the provider which created the content
    * @param indexAt a timestamp when the indexing happened
    */
-  case class Indexed(content: Content, provider: ContentProvider, indexAt: Instant)
+  case class Created(content: Content, provider: ContentProvider, indexAt: Instant)
 
   /**
    * Signals a successful update to an already indexed content
@@ -38,6 +46,5 @@ object Protocol {
    * @param provider the provider which created the content
    * @param updatedAt a timestamp when the update happened
    */
-  case class Updated(content: Content, provider: ContentProvider, updatedAt: Instant)
+  case class Indexed(content: Content, provider: ContentProvider, updatedAt: Instant)
 }
-
