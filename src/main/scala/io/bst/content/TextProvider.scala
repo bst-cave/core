@@ -9,6 +9,7 @@ import io.bst.model.Protocol.Tick
 import io.bst.model.Protocol.Indexed
 import io.bst.model.Protocol.Created
 import io.bst.ext.ElasticSearch
+import akka.event.Logging
 
 
 object TextProvider {
@@ -29,6 +30,7 @@ object TextProvider {
 class TextProvider(textFile: String, es: ElasticSearch) extends Actor with ContentProviderActor {
 
   val indexer = context.actorOf(Indexer.props(es))
+  val log = Logging(context.system, this)
   // TODO statistics
 
   override def provider = ContentProvider(getClass.getName, "Text Provider")
@@ -43,8 +45,8 @@ class TextProvider(textFile: String, es: ElasticSearch) extends Actor with Conte
 
       indexer ! IndexPile(provider, pile.toSeq)
 
-    case Created(content, provider, timestamp) =>
+    case Created(content, provider, timestamp) => log.info("Indexed new content [{}] from {} @ {}", content, provider, timestamp)
 
-    case Indexed(content, provider, timestamp) =>
+    case Indexed(content, provider, timestamp) => log.info("Updated existing content [{}] from {} @ {}", content, provider, timestamp)
   }
 }
