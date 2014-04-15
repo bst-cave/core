@@ -37,7 +37,7 @@ object Protocol {
    * @param provider the provider which created the content
    * @param indexAt a timestamp when the indexing happened
    */
-  case class Created(content: Content, provider: ContentProvider, indexAt: Instant)
+  case class Indexed(content: Content, provider: ContentProvider, indexAt: Instant)
 
   /**
    * Signals a successful update to an already indexed content
@@ -46,5 +46,5 @@ object Protocol {
    * @param provider the provider which created the content
    * @param updatedAt a timestamp when the update happened
    */
-  case class Indexed(content: Content, provider: ContentProvider, updatedAt: Instant)
+  case class Updated(content: Content, provider: ContentProvider, updatedAt: Instant)
 }

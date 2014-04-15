@@ -1,0 +1,17 @@
+<configuration>
+    <appender name="stdout" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%date{ISO8601} %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <logger name="akka" level="info"/>
+    <logger name="com.typesafe.akka" level="info"/>
+    <logger name="org.elasticsearch" level="info"/>
+    <logger name="org.quartz" level="info"/>
+    <logger name="io.bst" level="debug"/>
+
+    <root>
+        <appender-ref ref="stdout" />
+    </root>
+</configuration>

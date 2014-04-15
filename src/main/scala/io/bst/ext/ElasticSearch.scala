@@ -7,6 +7,8 @@ import io.bst.content.{ContentProvider, Content}
 import scala.concurrent.Future
 import org.elasticsearch.action.update.UpdateResponse
 import org.elasticsearch.action.bulk.BulkResponse
+import akka.event.Logging
+import org.slf4j.LoggerFactory
 
 /**
  * @author Harald Pehl

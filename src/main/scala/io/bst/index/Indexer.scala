@@ -1,10 +1,14 @@
 package io.bst.index
 
-import akka.actor.{Props, Actor}
+import akka.actor.{ActorLogging, Props, Actor}
 import java.time.Instant
-import io.bst.model.Protocol.{IndexPile, Indexed, IndexContent, Created}
+import io.bst.model.Protocol.{IndexPile, Updated, IndexContent, Indexed}
 import scala.collection.JavaConversions._
 import io.bst.ext.ElasticSearch
+import scala.util.{Failure, Success}
+import org.elasticsearch.action.index.IndexResponse
+import org.elasticsearch.action.update.UpdateResponse
+import org.elasticsearch.action.ActionResponse
 
 
 object Indexer {
@@ -19,29 +23,40 @@ object Indexer {
 
 
 /**
- * An actor which indexes content to an ElasticSearch index. The sender is notified with [[Created]] or [[Indexed]]
+ * An actor which indexes content to an ElasticSearch index. The sender is notified with [[Indexed]] or [[Updated]]
  * messages.
  * @author Harald Pehl
  */
-class Indexer(es: ElasticSearch) extends Actor {
+class Indexer(es: ElasticSearch) extends Actor with ActorLogging {
 
   import context.dispatcher
 
   override def receive = {
-
-    case IndexContent(provider, content) => es.index(provider, content) map {
-      response =>
-        if (response.isCreated) sender ! Created(content, provider, Instant.now())
-        else sender ! Indexed(content, provider, Instant.now())
-    }
-
-    case IndexPile(provider, pile) => es.index(provider, pile) map {
-      response => response.zipWithIndex foreach {
-        case (item, index) => item.getOpType match {
-          case "create" => sender ! Created(pile(index), provider, Instant.now())
-          case "index" => sender ! Indexed(pile(index), provider, Instant.now())
-        }
+    case IndexContent(provider, content) =>
+      log.debug("Going to index [{}] from {}", content, provider)
+      val currentSender = sender()
+      es.index(provider, content) onComplete {
+        case Success(response) =>
+          if (response.isCreated) currentSender ! Indexed(content, provider, Instant.now())
+          else currentSender ! Updated(content, provider, Instant.now())
+        case Failure(ex) => log.error(ex, "Unable to index [{}] from {}", content, provider)
       }
-    }
+
+    case IndexPile(provider, pile) =>
+      log.debug("Going to index a pile of {} content items from {}", pile.length, provider)
+      val currentSender = sender()
+      es.index(provider, pile) onComplete {
+        case Success(response) => response.zipWithIndex foreach {
+          case (item, index) => item.getResponse[ActionResponse] match {
+            case ir: IndexResponse => currentSender ! Indexed(pile(index), provider, Instant.now())
+            case ur: UpdateResponse =>
+              if (ur.isCreated) currentSender ! Indexed(pile(index), provider, Instant.now())
+              else currentSender ! Updated(pile(index), provider, Instant.now())
+            case unknown => log.warning("Unknown type '{}' in response to index a pile of {} content items from {}",
+              unknown.getClass.getName, pile.length, provider)
+          }
+        }
+        case Failure(ex) => log.error(ex, "Unable to index a pile of {} content items from {}", pile.length, provider)
+      }
   }
 }

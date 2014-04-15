@@ -7,7 +7,7 @@ import akka.actor.Actor
  * @author Harald Pehl
  */
 trait ContentProviderActor {
-  actor: Actor =>
+  this: Actor =>
 
   def provider: ContentProvider
 }
