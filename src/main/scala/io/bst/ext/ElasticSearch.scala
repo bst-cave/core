@@ -1,14 +1,12 @@
 package io.bst.ext
 
-import io.bst.user.User
 import com.sksamuel.elastic4s.ElasticClient
 import com.sksamuel.elastic4s.ElasticDsl._
 import io.bst.content.{ContentProvider, Content}
-import scala.concurrent.Future
-import org.elasticsearch.action.update.UpdateResponse
+import io.bst.user.User
 import org.elasticsearch.action.bulk.BulkResponse
-import akka.event.Logging
-import org.slf4j.LoggerFactory
+import org.elasticsearch.action.update.UpdateResponse
+import scala.concurrent.Future
 
 /**
  * @author Harald Pehl
@@ -22,7 +20,7 @@ class ElasticSearch private(client: ElasticClient, user: User) {
   val indexName = uid -> "bst"
 
   client.sync.execute(create index uid)
-  
+
   def index(provider: ContentProvider, content: Content): Future[UpdateResponse] = {
     client.execute(update(content.id) in indexName docAsUpsert documentFor(provider, content))
   }

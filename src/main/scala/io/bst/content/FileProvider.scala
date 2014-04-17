@@ -1,14 +1,12 @@
 package io.bst.content
 
 import akka.actor.{ActorLogging, Props, Actor}
-import scala.io.Source
-import io.bst.model.Protocol._
-import io.bst.index.Indexer
-import io.bst.model.Protocol.Tick
-import io.bst.model.Protocol.Updated
-import io.bst.model.Protocol.Indexed
 import io.bst.ext.ElasticSearch
+import io.bst.index.Indexer
+import io.bst.model.Protocol._
+import io.bst.stats.Stats
 import java.security.MessageDigest
+import scala.io.Source
 
 
 object FileProvider {
@@ -29,7 +27,7 @@ object FileProvider {
 class FileProvider(filename: String, es: ElasticSearch) extends Actor with ActorLogging with ContentProviderActor {
 
   val indexer = context.actorOf(Indexer.props(es), "indexer")
-  // TODO statistics
+  val stats = context.actorOf(Props[Stats], "stats")
 
   override def provider = ContentProvider(getClass.getName, "File Provider")
 
@@ -45,9 +43,8 @@ class FileProvider(filename: String, es: ElasticSearch) extends Actor with Actor
 
       indexer ! IndexPile(provider, pile.toSeq)
 
-    case Indexed(content, provider, timestamp) => log.info("Indexed new content [{}] from {} @ {}", content, provider, timestamp)
-
-    case Updated(content, provider, timestamp) => log.info("Updated existing content [{}] from {} @ {}", content, provider, timestamp)
+    case ic: IndexedContent => stats ! ic
+    case ip: IndexedPile => stats ! ip
   }
 
   private def md5(s: String) = {
