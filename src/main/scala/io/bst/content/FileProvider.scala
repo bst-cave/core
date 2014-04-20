@@ -26,10 +26,9 @@ object FileProvider {
  */
 class FileProvider(filename: String, es: ElasticSearch) extends Actor with ActorLogging with ContentProviderActor {
 
+  val provider = ContentProvider(getClass.getName, "File Provider")
   val indexer = context.actorOf(Indexer.props(es), "indexer")
   val stats = context.actorOf(Props[Stats], "stats")
-
-  override def provider = ContentProvider(getClass.getName, "File Provider")
 
   override def receive = {
 
@@ -43,7 +42,10 @@ class FileProvider(filename: String, es: ElasticSearch) extends Actor with Actor
 
       indexer ! IndexPile(provider, pile.toSeq)
 
+    case content: Content => indexer ! IndexContent(provider, content)
+
     case ic: IndexedContent => stats ! ic
+
     case ip: IndexedPile => stats ! ip
   }
 

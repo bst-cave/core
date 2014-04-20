@@ -10,7 +10,7 @@ resolvers += "Typesafe Repository" at "http://repo.typesafe.com/typesafe/release
 
 libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-actor" % "2.3.2",
-  "com.typesafe.akka" %% "akka-testkit" % "2.3.2",
+  "com.typesafe.akka" %% "akka-testkit" % "2.3.2" % "test",
   "com.typesafe.akka" %% "akka-slf4j" % "2.3.2",
   "com.typesafe.akka" %% "akka-quartz-scheduler" % "1.2.0-akka-2.2.x",
   "ch.qos.logback" % "logback-classic" % "1.0.13" % "runtime",
