@@ -1,18 +1,19 @@
 package io.bst.content
 
+import ContentFixture._
 import akka.actor.{Props, ActorRef, Actor, ActorSystem}
 import akka.testkit.{TestKit, ImplicitSender}
+import io.bst.model.Protocol.IndexedContent.Operation
 import io.bst.model.Protocol._
+import java.time.Instant
 import org.scalatest.{FlatSpecLike, BeforeAndAfterAll, Matchers}
 import scala.concurrent.duration._
-import java.time.Instant
-import io.bst.model.Protocol.IndexedContent.Operation
 
 
 object ContentFixture {
-  val provider = ContentProvider("dummyProvider", "Dummy Provider")
-  val content = Content("dummyContent", "dummy://content", "Dummy Content")
-  val pile = 0 until 10 map (index => Content(s"dummyContent$index", s"dummy://content/$index", "Dummy Content #$index"))
+  val provider = ContentProvider("testProvider", "Test Provider")
+  val content = Content("testContent", "test://content", "Test Content")
+  val pile = 0 until 10 map (index => Content(s"testContent$index", s"test://content/$index", "Test Content #$index"))
   val indexedContent = IndexedContent(provider, content, Instant.now, Operation.Created)
   val indexedPile = IndexedPile(pile map (IndexedContent(provider, _, Instant.now, Operation.Created)))
 }
@@ -31,11 +32,10 @@ class TestProvider(workmate: ActorRef) extends Actor with ContentProviderActor {
 
 
 class TestProviderSpec extends TestKit(ActorSystem("TestProviderSpec"))
-                                          with ImplicitSender
-                                          with FlatSpecLike
-                                          with Matchers
-                                          with BeforeAndAfterAll {
-  import ContentFixture._
+                               with ImplicitSender
+                               with FlatSpecLike
+                               with Matchers
+                               with BeforeAndAfterAll {
 
   override def afterAll() {
     system.shutdown()
