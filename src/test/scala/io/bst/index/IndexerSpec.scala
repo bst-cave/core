@@ -11,8 +11,8 @@ import io.bst.model.Protocol.{IndexedContent, IndexContent}
 import io.bst.user.User
 import java.util.UUID
 import org.scalatest.{BeforeAndAfterAll, Matchers, FlatSpecLike}
+import scala.concurrent.blocking
 import scala.concurrent.duration._
-import scala.concurrent.{blocking, Await}
 
 
 class IndexerSpec extends TestKit(ActorSystem("IndexerSpec"))
