@@ -1,6 +1,5 @@
 package io.bst.content
 
-import ContentFixture._
 import akka.actor.{Props, ActorRef, Actor, ActorSystem}
 import akka.testkit.{TestKit, ImplicitSender}
 import io.bst.model.Protocol.IndexedContent.Operation
@@ -10,7 +9,7 @@ import org.scalatest.{FlatSpecLike, BeforeAndAfterAll, Matchers}
 import scala.concurrent.duration._
 
 
-object ContentFixture {
+trait ContentFixture {
   val provider = ContentProvider("testProvider", "Test Provider")
   val content = Content("testContent", "test://content", "Test Content")
   val pile = 0 until 10 map (index => Content(s"testContent$index", s"test://content/$index", "Test Content #$index"))
@@ -19,11 +18,9 @@ object ContentFixture {
 }
 
 
-class TestProvider(workmate: ActorRef) extends Actor with ContentProviderActor {
-  val provider = ContentFixture.provider
-
+class TestProvider(workmate: ActorRef) extends Actor with ContentProviderActor with ContentFixture {
   override def receive = {
-    case Tick => workmate ! IndexPile(provider, ContentFixture.pile)
+    case Tick => workmate ! IndexPile(provider, pile)
     case content: Content => workmate ! IndexContent(provider, content)
     case ic: IndexedContent => workmate ! ic
     case ip: IndexedPile => workmate ! ip
@@ -42,25 +39,25 @@ class TestProviderSpec extends TestKit(ActorSystem("TestProviderSpec"))
     system.awaitTermination(10.seconds)
   }
 
-  "A content provider" should "index a pile of content items" in {
+  "A content provider" should "index a pile of content items" in new ContentFixture {
     val testProvider = system.actorOf(Props(new TestProvider(testActor)))
     testProvider ! Tick
     expectMsg(IndexPile(provider, pile))
   }
 
-  it should "index a single content item" in {
+  it should "index a single content item" in new ContentFixture {
     val testProvider = system.actorOf(Props(new TestProvider(testActor)))
     testProvider ! content
     expectMsg(IndexContent(provider, content))
   }
 
-  "A content provider" should "forward a pile of indexed content items" in {
+  "A content provider" should "forward a pile of indexed content items" in new ContentFixture {
     val testProvider = system.actorOf(Props(new TestProvider(testActor)))
     testProvider ! indexedPile
     expectMsg(indexedPile)
   }
 
-  it should "forward a single content item" in {
+  it should "forward a single content item" in new ContentFixture {
     val testProvider = system.actorOf(Props(new TestProvider(testActor)))
     testProvider ! indexedContent
     expectMsg(indexedContent)

@@ -6,6 +6,7 @@
 .history/
 .lib/
 .sbt_completion_cache
+data
 dist/*
 target/
 lib_managed/
