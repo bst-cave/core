@@ -1,8 +1,9 @@
 package io.bst.model
 
-import java.time.Instant
 import io.bst.content.Content
 import io.bst.content.ContentProvider
+import io.bst.model.Protocol.IndexedContent.Operation.Operation
+import java.time.Instant
 
 /**
  * @author Harald Pehl
@@ -30,21 +31,31 @@ object Protocol {
    */
   case class IndexPile(provider: ContentProvider, pile: Seq[Content])
 
+  object IndexedContent {
+
+    object Operation extends Enumeration {
+      type Operation = Value
+      val Created = Value("created")
+      val Updated = Value("updated")
+      val Removed = Value("removed")
+      val Undefined = Value("undefined")
+    }
+
+  }
+
   /**
    * Signals a successfully indexed content
    *
-   * @param content the content
    * @param provider the provider which created the content
-   * @param indexAt a timestamp when the indexing happened
+   * @param content the content
+   * @param timestamp a timestamp when the indexing happened
+   * @param operation whether the content was indexed for the first time or updated
    */
-  case class Indexed(content: Content, provider: ContentProvider, indexAt: Instant)
+  case class IndexedContent(provider: ContentProvider, content: Content, timestamp: Instant, operation: Operation)
 
   /**
-   * Signals a successful update to an already indexed content
-   *
-   * @param content the content
-   * @param provider the provider which created the content
-   * @param updatedAt a timestamp when the update happened
+   * To make pattern matching more type safe
+   * @param pile the indexed content items
    */
-  case class Updated(content: Content, provider: ContentProvider, updatedAt: Instant)
+  case class IndexedPile(pile: Seq[IndexedContent])
 }
