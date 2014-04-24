@@ -13,12 +13,6 @@ import org.elasticsearch.common.io.stream.Streamable
 
 
 object Indexer {
-  /**
-   * Create Props for an actor of this type.
-   * @param es The ElasticSearch singleton.
-   * @return a Props for creating this actor, which can then be further configured
-   *         (e.g. calling `.withDispatcher()` on it)
-   */
   def props(es: ElasticSearch): Props = Props(new Indexer(es))
 }
 

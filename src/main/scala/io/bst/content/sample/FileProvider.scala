@@ -1,6 +1,7 @@
-package io.bst.content
+package io.bst.content.sample
 
 import akka.actor.{ActorLogging, Props, Actor}
+import io.bst.content.{Content, ContentProvider, ContentProviderActor}
 import io.bst.ext.ElasticSearch
 import io.bst.index.Indexer
 import io.bst.model.Protocol._
@@ -10,12 +11,6 @@ import scala.io.Source
 
 
 object FileProvider {
-  /**
-   * Create Props for an actor of this type.
-   * @param es The ElasticSearch singleton.
-   * @return a Props for creating this actor, which can then be further configured
-   *         (e.g. calling `.withDispatcher()` on it)
-   */
   def props(filename: String, es: ElasticSearch): Props = Props(new FileProvider(filename, es))
 }
 
