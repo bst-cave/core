@@ -5,6 +5,7 @@ import com.sksamuel.elastic4s.ElasticClient
 import io.bst.ext.ElasticSearch
 import io.bst.user.User
 import java.util.UUID
+import java.util.UUID.randomUUID
 
 
 /**
@@ -12,7 +13,7 @@ import java.util.UUID
  */
 object Bst extends App {
   val system = ActorSystem("bst")
-  val es = ElasticSearch(ElasticClient.local, User(UUID.randomUUID(), "foobar", "foo@bar.com"))
+  val es = ElasticSearch(ElasticClient.local, User(randomUUID, "foobar", "foo@bar.com"))
 
 //  val filename = new File(".").getCanonicalPath + "/random.txt"
 //  val fileProvider = system.actorOf(FileProvider.props(filename, es), "fileProvider")
