@@ -1,7 +1,7 @@
 package io.bst.contentprovider
 
 import akka.actor.Actor
-import io.bst.contentprovider.ContentProviderActor.WhoAmI
+import io.bst.contentprovider.ContentProviderActor.WhoAreYou
 import io.bst.user.User
 
 
@@ -31,7 +31,7 @@ object ContentProviderActor {
    */
   case class Push(user: User, content: Content)
 
-  case class WhoAmI()
+  case class WhoAreYou()
 
   /**
    * Metadata for a content provider
@@ -58,7 +58,7 @@ trait ContentProviderActor {
    */
   def info: ContentProviderInfo
 
-  def whoAmI: Receive = {
-    case WhoAmI => sender() ! info
+  def whoAreYou: Receive = {
+    case WhoAreYou => sender() ! info
   }
 }

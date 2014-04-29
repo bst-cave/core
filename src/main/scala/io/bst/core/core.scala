@@ -5,6 +5,7 @@ import io.bst.contentprovider.ContentProvidersActor
 import io.bst.elasticsearch.{ElasticSearch, ElasticClientComponent}
 import io.bst.index.IndexActor
 import io.bst.stats.StatsActor
+import scala.concurrent.duration._
 
 /**
  * Core is type containing the ``system: ActorSystem`` member. This enables us to use it in our
@@ -26,12 +27,15 @@ trait BootedCore extends Core {
   /**
    * Construct the ActorSystem we will use in our application
    */
-  implicit lazy val system = ActorSystem("akka-spray")
+  implicit lazy val system = ActorSystem("bst-core")
 
   /**
    * Ensure that the constructed ActorSystem is shut down when the JVM shuts down
    */
-  sys.addShutdownHook(system.shutdown())
+  sys.addShutdownHook {
+    system.shutdown()
+    system.awaitTermination(10.seconds)
+  }
 }
 
 

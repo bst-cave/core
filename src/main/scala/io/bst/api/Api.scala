@@ -4,6 +4,7 @@ import akka.actor.Props
 import io.bst.core.{CoreActors, Core}
 import spray.routing.RouteConcatenation
 
+
 /**
  * The REST API layer. It defines the routes and as such exposes the REST services, but does not provide any
  * web server interface.<br/>
@@ -15,7 +16,8 @@ trait Api extends RouteConcatenation {
 
   private implicit val _ = system.dispatcher
 
-  val routes = _
+  val routes = new HomeService().route
 
-  val rootService = system.actorOf(Props(new RoutedHttpService(routes)))
+  val rootService = system.actorOf(Props(new RoutedHttpService(routes)), "api")
 }
+

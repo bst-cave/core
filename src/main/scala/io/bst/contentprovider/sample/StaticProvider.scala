@@ -27,7 +27,7 @@ object StaticProvider {
                 |Overslept jeez a flamingo and indecently unblushingly evil save other dear behind waved indirect dear darn objectively and because densely grizzly less.
                 | """.stripMargin.lines.zipWithIndex
 
-  def props(indexer: ActorRef): Props = Props(new StaticProvider(indexer))
+  def props(index: ActorRef): Props = Props(new StaticProvider(index))
 }
 
 
@@ -35,15 +35,15 @@ object StaticProvider {
  * An actor which provides content from static text.
  * @author Harald Pehl
  */
-class StaticProvider(indexer: ActorRef) extends Actor with ActorLogging with ContentProviderActor {
+class StaticProvider(index: ActorRef) extends Actor with ActorLogging with ContentProviderActor {
 
   import StaticProvider._
   import io.bst.contentprovider.ContentProviderActor._
   import io.bst.index.IndexActor._
 
-  val info = ContentProviderInfo(getClass.getName, "Static Provider")
+  override val info = ContentProviderInfo(getClass.getName, "Static Provider")
 
-  override def receive = whoAmI orElse {
+  override def receive = whoAreYou orElse {
 
     case Pull(user) =>
       log.debug("Pull all content for {}", user)
@@ -53,11 +53,11 @@ class StaticProvider(indexer: ActorRef) extends Actor with ActorLogging with Con
         id = md5(text)
       } yield Content(id, s"static://text#$line", text)
 
-      indexer ! IndexPile(user, info, pile.toSeq)
+      index ! IndexPile(user, info, pile.toSeq)
 
     case Push(user, content) =>
       log.debug("Push {} for {}", content, user)
-      indexer ! IndexContent(user, info, content)
+      index ! IndexContent(user, info, content)
   }
 
   private def md5(s: String) = {

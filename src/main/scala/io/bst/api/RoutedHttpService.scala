@@ -7,6 +7,7 @@ import spray.http.{HttpEntity, StatusCode}
 import spray.routing._
 import spray.util.LoggingContext
 
+
 /**
  * Holds potential error response with the HTTP status and optional body
  *

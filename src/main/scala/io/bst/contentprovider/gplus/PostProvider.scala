@@ -1,26 +1,19 @@
 package io.bst.contentprovider.gplus
 
-import akka.actor.{ActorLogging, Props, Actor}
+import akka.actor.{ActorRef, ActorLogging, Props, Actor}
 import io.bst.contentprovider.ContentProviderActor
-import io.bst.env.ElasticSearch
-import io.bst.index.IndexActor
-import io.bst.model.Protocol.Tick
-import io.bst.stats.StatsActor
-import io.bst.contentprovider.{ContentProviderActor, ContentProvider}
+import io.bst.contentprovider.ContentProviderActor.ContentProviderInfo
 
 
 object PostProvider {
-  def props(filename: String, es: ElasticSearch): Props = Props(new PostProvider(es))
+  def props(index: ActorRef): Props = Props(new PostProvider(index))
 }
 
-class PostProvider(es: ElasticSearch) extends Actor with ActorLogging with ContentProviderActor {
+class PostProvider(index: ActorRef) extends Actor with ActorLogging with ContentProviderActor {
 
-  val info: ContentProvider = ContentProvider(getClass.getName, "Google+ Post Provider", Some("Provides G+ posts"))
-  val indexer = context.actorOf(IndexActor.props(es), "indexer")
-  val stats = context.actorOf(Props[StatsActor], "stats")
+  override val info = ContentProviderInfo(getClass.getName, "G+ Post Provider")
 
   override def receive = {
-    case Tick =>
-      log.debug("Collect all G+ posts")
+    case _ => log.warning("Not yet implemented!")
   }
 }

@@ -5,6 +5,7 @@ import io.bst.api.Api
 import io.bst.core.{CoreActors, Core}
 import spray.can.Http
 
+
 /**
  * Provides the web server (spray-can) for the REST api in ``Api``, using the actor system
  * defined in ``Core``.
@@ -20,5 +21,4 @@ trait Web {
   this: Api with CoreActors with Core =>
 
   IO(Http)(system) ! Http.Bind(rootService, "0.0.0.0", port = 8080)
-
 }
