@@ -1,4 +1,4 @@
-package io.bst.content
+package io.bst.contentprovider
 
 import akka.actor.{Props, ActorRef, Actor, ActorSystem}
 import akka.testkit.{TestKit, ImplicitSender}
@@ -7,6 +7,7 @@ import io.bst.model.Protocol._
 import java.time.Instant
 import org.scalatest.{FlatSpecLike, BeforeAndAfterAll, Matchers}
 import scala.concurrent.duration._
+import io.bst.contentprovider.{ContentProviderActor, ContentProvider, Content}
 
 
 trait ContentFixture {

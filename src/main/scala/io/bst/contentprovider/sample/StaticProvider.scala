@@ -1,0 +1,67 @@
+package io.bst.contentprovider.sample
+
+import akka.actor.{ActorRef, ActorLogging, Props, Actor}
+import io.bst.contentprovider.ContentProviderActor
+import java.security.MessageDigest
+
+
+object StaticProvider {
+  val lines = """Incessant coquettish far one crud less hoarsely noisy preparatory manta tarantula hence one dog ouch until more fearless koala much.
+                |Far ferocious ouch closed far excepting darn on hence preparatory wow much crud outran flirtatiously much anonymous jeepers indubitable far this more.
+                |Since ostrich regarding dear sordid until and about thanks darn faultily less near or anathematically this shuddered and oh along darn and tepid suitable.
+                |Evasively falsely far however magnificently much much thus far when masterfully across and faithfully one ouch snorted artistically beaver in perilous jeepers octopus bound far that suitably fussy that turtle gosh tore one to unlike.
+                |On in circa hey because resold this regarding much cow smirked far far less oriole poutingly insect rabbit some indecisively underneath broad nosy python bluebird.
+                |Yawned egret that monstrous but impetuous labrador skimpily waved gosh and inescapable greyhound in attentive woolly yikes during that esoteric pending because.
+                |But scallop crept spontaneous far rapid inside far some close gosh forward deer added ouch wolf baboon exited a ravingly fruitlessly strived connected more continual much.
+                |Danced then convincingly when coherent as withdrew since underneath owl trite and dragonfly because browbeat out healthily along as and misunderstood close congenially dear therefore a circa this forsook a this.
+                |Until one alas that yikes fitted inimical the cursed aboard bandicoot before because saucy and wittily astride magnanimous because cockily hooted elaborately irrationally lion as mean much much ouch.
+                |Horse ouch goodness thus much bowed gaudy goodness this activated less notwithstanding thanks alas far dove after frog tarantula a much far goat and because shrewd much up thus bred.
+                |After one bounced tryingly antagonistic across fulsomely rewrote toward next dear balked gosh thick dragonfly jeepers the destructive cunning pushed and as and pled fixedly egret lobster however consistently.
+                |This well bashfully some as pending strategically hen limpet lorikeet some llama since zebra unicorn leniently antagonistic dove less and this lobster across crud amorally weak.
+                |Pouted one and hugely notoriously jeepers combed circuitously and by as that far much experimental far more immaturely waspishly far via beyond less less.
+                |One because far less doused premature cow said this less and so affluent over alas oppressive fitted chuckled much unicorn more knitted flexed smugly but beaver alleged that laughed.
+                |Consoled more armadillo far keen faint the according much soulful thanks unwound leniently sanctimonious darn fearlessly and salamander far out shrank drank komodo credible lame conclusive jeepers whale.
+                |Leapt a behind kookaburra hey that irrespective in forward dreadfully dolorously reluctant effective taunting wedded informally conspicuous circa or hello this falcon one alas compact fulsomely up bluebird squid exultingly.
+                |Contrary a much liberally canny resold prissy dishonest onto opposite well tediously squirrel let less much telepathically that positive panda.
+                |Tore ducked a therefore outside on egregious on on so impertinently one effective because the and and far despite imitatively flinched tartly outbid well.
+                |Overslept jeez a flamingo and indecently unblushingly evil save other dear behind waved indirect dear darn objectively and because densely grizzly less.
+                | """.stripMargin.lines.zipWithIndex
+
+  def props(indexer: ActorRef): Props = Props(new StaticProvider(indexer))
+}
+
+
+/**
+ * An actor which provides content from static text.
+ * @author Harald Pehl
+ */
+class StaticProvider(indexer: ActorRef) extends Actor with ActorLogging with ContentProviderActor {
+
+  import StaticProvider._
+  import io.bst.contentprovider.ContentProviderActor._
+  import io.bst.index.IndexActor._
+
+  val info = ContentProviderInfo(getClass.getName, "Static Provider")
+
+  override def receive = whoAmI orElse {
+
+    case Pull(user) =>
+      log.debug("Pull all content for {}", user)
+
+      val pile = for {
+        (text, line) <- lines
+        id = md5(text)
+      } yield Content(id, s"static://text#$line", text)
+
+      indexer ! IndexPile(user, info, pile.toSeq)
+
+    case Push(user, content) =>
+      log.debug("Push {} for {}", content, user)
+      indexer ! IndexContent(user, info, content)
+  }
+
+  private def md5(s: String) = {
+    val bytes = MessageDigest.getInstance("MD5").digest(s.getBytes)
+    bytes.map(byte => Integer.toHexString(0xFF & byte)).mkString
+  }
+}
