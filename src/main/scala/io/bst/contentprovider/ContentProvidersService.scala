@@ -18,5 +18,4 @@ class ContentProvidersService(implicit executionContext: ExecutionContext)
         }
       }
     }
-
 }
