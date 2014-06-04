@@ -4,8 +4,8 @@ import akka.actor.ActorSystem
 import akka.testkit.{ImplicitSender, TestKit}
 import com.sksamuel.elastic4s.ElasticClient
 import com.sksamuel.elastic4s.ElasticDsl._
-import io.bst.content.ContentFixture
-import io.bst.ext.ElasticSearch
+import io.bst.contentprovider.ContentFixture
+import io.bst.env.ElasticSearch
 import io.bst.model.Protocol.IndexedContent.Operation
 import io.bst.model.Protocol.{IndexedContent, IndexContent}
 import io.bst.user.User
@@ -48,7 +48,7 @@ class IndexerSpec extends TestKit(ActorSystem("IndexerSpec"))
   "An indexer" should "create an index entry for a new content item" in withElasticSearch {
     (client, es) => withContentFixture {
       (contentFixture) => {
-        val indexer = system.actorOf(Indexer.props(es))
+        val indexer = system.actorOf(IndexActor.props(es))
         indexer ! IndexContent(contentFixture.provider, contentFixture.content)
 
         val ic = expectMsgType[IndexedContent]
@@ -65,7 +65,7 @@ class IndexerSpec extends TestKit(ActorSystem("IndexerSpec"))
   it should "update an index entry for an existing content item" in withElasticSearch {
     (client, es) => withContentFixture {
       (contentFixture) => {
-        val indexer = system.actorOf(Indexer.props(es))
+        val indexer = system.actorOf(IndexActor.props(es))
         indexer ! IndexContent(contentFixture.provider, contentFixture.content)
         expectMsgType[IndexedContent]
 

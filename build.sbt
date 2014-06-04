@@ -16,9 +16,11 @@ libraryDependencies ++= {
   val sprayStandaloneVersion = "1.3.1"
   val sprayScalaVersion = "1.2.6"
   Seq(
-    "io.spray"               %  "spray-can"             % sprayStandaloneVersion,
-    "io.spray"               %  "spray-routing"         % sprayStandaloneVersion,
     "io.spray"               %% "spray-json"            % sprayScalaVersion,
+    "io.spray"               %  "spray-routing"         % sprayStandaloneVersion,
+    "io.spray"               %  "spray-caching"         % sprayStandaloneVersion,
+    "io.spray"               %  "spray-can"             % sprayStandaloneVersion,
+    "io.spray"               %  "spray-client"          % sprayStandaloneVersion,
     "io.spray"               %  "spray-testkit"         % sprayStandaloneVersion % "test",
     "com.typesafe.akka"      %% "akka-actor"            % akkaVersion,
     "com.typesafe.akka"      %% "akka-slf4j"            % akkaVersion,
